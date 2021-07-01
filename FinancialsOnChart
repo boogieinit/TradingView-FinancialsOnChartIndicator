@@ -1,0 +1,827 @@
+//@version=4
+study("Financials on Chart", "", true)
+ 
+// Financials on Chart
+// v1, 2021.06.21 09:04
+
+// This indicator displays up to 9 fundamentals on the chart.
+
+// This code was written using the PineCoders Coding Conventions for Pine: http://www.pinecoders.com/coding_conventions/
+
+
+
+// ———————————————————— Constants {
+
+// Default values for display.
+var color  C_TEXT   = #D1D4DC
+var color  C_BG     = #1848CC
+var color  C_BG_DN  = #C90707
+var string TXT_SIZE = "auto"
+
+// Financial periods.
+var string FQ = "Financial Quarter"
+var string FY = "Financial Year"
+var string TT = "Trailing Twelve Months"
+
+// Financial legends.
+var string F_NA = "⸺"
+var string F000 = "█ INCOME STATEMENTS █"
+var string F001 = " After tax other income/expense"
+var string F002 = " Average basic shares outstanding"
+var string F003 = " Other COGS"
+var string F004 = " Cost of goods"
+var string F005 = " Deprecation and amortization"
+var string F006 = " Diluted net income available to common stockholders"
+var string F007 = " Diluted shares outstanding"
+var string F008 = " Dilution adjustment"
+var string F009 = " Discontinued operations"
+var string F010 = " Basic EPS"
+var string F011 = " Diluted EPS"
+var string F012 = " EBIT"
+var string F013 = " EBITDA"
+var string F014 = " Equity in earnings"
+var string F015 = " Gross profit"
+var string F016 = " Taxes"
+var string F017 = " Interest capitalized"
+var string F018 = " Interest expense on debt"
+var string F019 = " Non-controlling/minority interest"
+var string F020 = " Net income before discontinued operations"
+var string F021 = " Net income"
+var string F022 = " Non-operating income, excl. interest expenses"
+var string F023 = " Interest expense, net of interest capitalized"
+var string F024 = " Non-operating interest income"
+var string F025 = " Operating income"
+var string F026 = " Operating expenses (excl. COGS)"
+var string F027 = " Miscellaneous non-operating expense"
+var string F028 = " Other operating expenses, total"
+var string F029 = " Preferred dividends"
+var string F030 = " Pretax equity in earnings"
+var string F031 = " Pretax income"
+var string F032 = " Research & development"
+var string F033 = " Selling/general/admin expenses, other"
+var string F034 = " Selling/general/admin expenses, total"
+var string F035 = " Non-operating income, total"
+var string F036 = " Total operating expenses"
+var string F037 = " Total revenue"
+var string F038 = " Unusual income/expense"
+
+var string F100 = "█ BALANCE SHEET █"
+var string F101 = " Accounts payable"
+var string F102 = " Accounts receivable - trade, net"
+var string F103 = " Accrued payroll"
+var string F104 = " Accumulated depreciation, total"
+var string F105 = " Additional paid-in capital/Capital surplus"
+var string F106 = " Tangible book value per share"
+var string F107 = " Book value per share"
+var string F108 = " Capitalized lease obligations"
+var string F109 = " Capital and operating lease obligations"
+var string F110 = " Cash & equivalents"
+var string F111 = " Cash and short term investments"
+var string F112 = " Common equity, total"
+var string F113 = " Common stock par/Carrying value"
+var string F114 = " Current portion of LT debt and capital leases"
+var string F115 = " Deferred income, current"
+var string F116 = " Deferred income, non-current"
+var string F117 = " Deferred tax assets"
+var string F118 = " Deferred tax liabilities"
+var string F119 = " Dividends payable"
+var string F120 = " Goodwill, net"
+var string F121 = " Income tax payable"
+var string F122 = " Net intangible assets"
+var string F123 = " Inventories - finished goods"
+var string F124 = " Inventories - progress payments & other"
+var string F125 = " Inventories - raw materials"
+var string F126 = " Inventories - work in progress"
+var string F127 = " Investments in unconsolidated subsidiaries"
+var string F128 = " Long term debt excl. lease liabilities"
+var string F129 = " Long term debt"
+var string F130 = " Long term investments"
+var string F131 = " Note receivable - long term"
+var string F132 = " Other long term assets, total"
+var string F133 = " Minority interest"
+var string F134 = " Notes payable"
+var string F135 = " Operating lease liabilities"
+var string F136 = " Other common equity"
+var string F137 = " Other current assets, total"
+var string F138 = " Other current liabilities"
+var string F139 = " Other intangibles, net"
+var string F140 = " Other investments"
+var string F141 = " Other liabilities, total"
+var string F142 = " Other receivables"
+var string F143 = " Other short term debt"
+var string F144 = " Paid in capital"
+var string F145 = " Gross property/plant/equipment"
+var string F146 = " Net property/plant/equipment"
+var string F147 = " Preferred stock, carrying value"
+var string F148 = " Prepaid expenses"
+var string F149 = " Provision for risks & charge"
+var string F150 = " Retained earnings"
+var string F151 = " Short term debt excl. current portion of LT debt"
+var string F152 = " Short term debt"
+var string F153 = " Short term investments"
+var string F154 = " Shareholders' equity"
+var string F155 = " Total assets"
+var string F156 = " Total current assets"
+var string F157 = " Total current liabilities"
+var string F158 = " Total debt"
+var string F159 = " Total equity"
+var string F160 = " Total inventory"
+var string F161 = " Total liabilities"
+var string F162 = " Total liabilities & shareholders' equities"
+var string F163 = " Total non-current assets"
+var string F164 = " Total non-current liabilities"
+var string F165 = " Total receivables, net"
+var string F166 = " Treasury stock - common"
+
+var string F200 = "█ CASHFLOW █"
+var string F201 = " Amortization"
+var string F202 = " Capital expenditures - fixed assets"
+var string F203 = " Capital expenditures"
+var string F204 = " Capital expenditures - other assets"
+var string F205 = " Cash from financing activities"
+var string F206 = " Cash from investing activities"
+var string F207 = " Cash from operating activities"
+var string F208 = " Deferred taxes (cash flow)"
+var string F209 = " Depreciation & amortization (cash flow)"
+var string F210 = " Change in accounts payable"
+var string F211 = " Change in accounts receivable"
+var string F212 = " Change in accrued expenses"
+var string F213 = " Change in inventories"
+var string F214 = " Change in other assets/liabilities"
+var string F215 = " Change in taxes payable"
+var string F216 = " Changes in working capital"
+var string F217 = " Common dividends paid"
+var string F218 = " Depreciation/depletion"
+var string F219 = " Free cash flow"
+var string F220 = " Funds from operations"
+var string F221 = " Issuance/retirement of debt, net"
+var string F222 = " Issuance/retirement of long term debt"
+var string F223 = " Issuance/retirement of other debt"
+var string F224 = " Issuance/retirement of short term debt"
+var string F225 = " Issuance/retirement of stock, net"
+var string F226 = " Net income (cash flow)"
+var string F227 = " Non-cash items"
+var string F228 = " Other financing cash flow items, total"
+var string F229 = " Financing activities - other sources"
+var string F230 = " Financing activities - other uses"
+var string F231 = " Other investing cash flow items, total"
+var string F232 = " Investing activities - other sources"
+var string F233 = " Investing activities - other uses"
+var string F234 = " Preferred dividends paid"
+var string F235 = " Purchase/acquisition of business"
+var string F236 = " Purchase of investments"
+var string F237 = " Repurchase of common & preferred stock"
+var string F238 = " Purchase/sale of business, net"
+var string F239 = " Purchase/sale of investments, net"
+var string F240 = " Reduction of long term debt"
+var string F241 = " Sale of common & preferred stock"
+var string F242 = " Sale of fixed assets & businesses"
+var string F243 = " Sale/maturity of investments"
+var string F244 = " Issuance of long term debt"
+var string F245 = " Total cash dividends paid"
+
+var string F300 = "█ STATISTICS █"
+var string F301 = " Accruals"
+var string F302 = " Altman Z-score"
+var string F303 = " Asset turnover"
+var string F304 = " Beneish M-score"
+var string F305 = " Buyback yield %"
+var string F306 = " Cash conversion cycle"
+var string F307 = " Cash to debt ratio"
+var string F308 = " COGS to revenue ratio"
+var string F309 = " Current ratio"
+var string F310 = " Days sales outstanding"
+var string F311 = " Days inventory"
+var string F312 = " Days payable"
+var string F313 = " Debt to assets ratio"
+var string F314 = " Debt to EBITDA ratio"
+var string F315 = " Debt to equity ratio"
+var string F316 = " Debt to revenue ratio"
+var string F317 = " Dividend payout ratio %"
+var string F318 = " Dividend yield %"
+var string F319 = " Dividends per share - common stock primary issue"
+var string F320 = " EPS estimates"
+var string F321 = " EPS basic one year growth"
+var string F322 = " EPS diluted one year growth"
+var string F323 = " EBITDA margin %"
+var string F324 = " Effective interest rate on debt %"
+var string F325 = " Enterprise value to EBITDA ratio"
+var string F326 = " Enterprise value"
+var string F327 = " Equity to assets ratio"
+var string F328 = " Enterprise value to EBIT ratio"
+var string F329 = " Enterprise value to revenue ratio"
+var string F330 = " Float shares outstanding"
+var string F331 = " Free cash flow margin %"
+var string F332 = " Fulmer H factor"
+var string F333 = " Goodwill to assets ratio"
+var string F334 = " Graham's number"
+var string F335 = " Gross margin %"
+var string F336 = " Gross profit to assets ratio"
+var string F337 = " Interest coverage"
+var string F338 = " Inventory to revenue ratio"
+var string F339 = " Inventory turnover"
+var string F340 = " KZ index"
+var string F341 = " Long term debt to total assets ratio"
+var string F342 = " Net current asset value per share"
+var string F343 = " Net income per employee"
+var string F344 = " Net margin %"
+var string F345 = " Number of employees"
+var string F346 = " Operating earnings yield %"
+var string F347 = " Operating margin %"
+var string F348 = " PEG ratio"
+var string F349 = " Piotroski F-score"
+var string F350 = " Price earnings ratio forward"
+var string F351 = " Price sales ratio forward"
+var string F352 = " Price to free cash flow ratio"
+var string F353 = " Price to tangible book ratio"
+var string F354 = " Quality ratio"
+var string F355 = " Quick ratio"
+var string F356 = " Research & development to revenue ratio"
+var string F357 = " Return on assets %"
+var string F358 = " Return on equity adjusted to book value %"
+var string F359 = " Return on equity %"
+var string F360 = " Return on invested capital %"
+var string F361 = " Return on tangible assets %"
+var string F362 = " Return on tangible equity %"
+var string F363 = " Revenue one year growth"
+var string F364 = " Revenue per employee"
+var string F365 = " Revenue estimates"
+var string F366 = " Shares buyback ratio %"
+var string F367 = " Sloan ratio %"
+var string F368 = " Springate score"
+var string F369 = " Sustainable growth rate"
+var string F370 = " Tangible common equity ratio"
+var string F371 = " Tobin's Q (approximate)"
+var string F372 = " Total common shares outstanding"
+var string F373 = " Zmijewski score"
+
+var string F400 = "█ CALCULATED █"
+var string F401 = " Market Capitalization"
+var string F402 = " Earnings Yield"
+var string F403 = " Price Book Ratio"
+var string F404 = " Price Earnings Ratio"
+var string F405 = " Price-To-Sales Ratio"
+
+var string BG = "⛆"
+// }
+
+
+
+// ———————————————————— Inputs {
+
+var string GP0 = "Position & Size"
+string  i_tableYpos         = input("top",      "↕",                inline = "01", group = GP0, options = ["top", "middle", "bottom"])
+string  i_tableXpos         = input("right",    "↔",                inline = "01", group = GP0, options = ["left", "center", "right"], tooltip = "Position on the chart.")
+int     i_tableRowHeight    = input(0,          "|",                inline = "02", group = GP0, minval = 0, maxval = 100)
+int     i_tableColWidth     = input(0,          "—",                inline = "02", group = GP0, minval = 0, maxval = 100, tooltip = "0-100. Use 0 to auto-size height and width.")
+color   i_c_tableText       = input(C_TEXT,     "Text",             inline = "03", group = GP0)
+string  i_tableTextSize     = input(TXT_SIZE,   "",                 inline = "03", group = GP0, options = ["tiny", "small", "normal", "large", "huge", "auto"])
+color   i_c_tableBg         = input(C_BG,       BG,                 inline = "03", group = GP0)
+color   i_c_tableBgDn       = input(C_BG_DN,    "🡓",               inline = "03", group = GP0, tooltip = "These attributes apply to all the display. You can customize the text size and the background color for individual values in the section below.")
+string  i_currency          = input("",         "Conversion",       inline = "04", group = GP0, options = ["", currency.EUR, currency.CAD, currency.JPY, currency.GBP, currency.HKD, "CNY"])
+bool    i_showCurrency      = input(true,       "Show currency",    inline = "04", group = GP0)
+bool    i_abbrLargeValues   = input(true,       "Abbreviate large values", group = GP0)
+
+var string GP1 = "①"
+string  i_01            = input(F401,        "",            inline = "11", group = GP1, 
+  options = [F_NA, F400, F401, F402, F403, F404, F405,
+             F000, F001, F002, F003, F004, F005, F006, F007, F008, F009, F010, F011, F012, F013, F014, F015, F016, F017, F018, F019, F020, F021, F022, F023, F024, F025, F026, F027, F028, F029, F030, F031, F032, F033, F034, F035, F036, F037, F038, 
+             F100, F101, F102, F103, F104, F105, F106, F107, F108, F109, F110, F111, F112, F113, F114, F115, F116, F117, F118, F119, F120, F121, F122, F123, F124, F125, F126, F127, F128, F129, F130, F131, F132, F133, F134, F135, F136, F137, F138, F139, F140, F141, F142, F143, F144, F145, F146, F147, F148, F149, F150, F151, F152, F153, F154, F155, F156, F157, F158, F159, F160, F161, F162, F163, F164, F165, F166,
+             F200, F201, F202, F203, F204, F205, F206, F207, F208, F209, F210, F211, F212, F213, F214, F215, F216, F217, F218, F219, F220, F221, F222, F223, F224, F225, F226, F227, F228, F229, F230, F231, F232, F233, F234, F235, F236, F237, F238, F239, F240, F241, F242, F243, F244, F245,
+             F300, F301, F302, F303, F304, F305, F306, F307, F308, F309, F310, F311, F312, F313, F314, F315, F316, F317, F318, F319, F320, F321, F322, F323, F324, F325, F326, F327, F328, F329, F330, F331, F332, F333, F334, F335, F336, F337, F338, F339, F340, F341, F342, F343, F344, F345, F346, F347, F348, F349, F350, F351, F352, F353, F354, F355, F356, F357, F358, F359, F360, F361, F362, F363, F364, F365, F366, F367, F368, F369, F370, F371, F372, F373])
+string  i_01_period     = input(FY,          "",            inline = "11", group = GP1, options = [FY, FQ, TT], tooltip = "Fields are: Value, Period and Precision.\nPERIOD\n• 'Financial Quarter' is not available for Dividends payable, Notes payable, Other short term debt, Float shares outstanding, KZ index, Net income per employee, Number of employees, Revenue per employee.\n• The 'Trailing Twelve Months' period is only available for Basic EPS and EBITDA.")
+int     i_01_precision  = input(3,           "",            inline = "11", group = GP1, minval = 0, maxval = 10)
+string  i_01_legend     = input("",          " Legend",     inline = "12", group = GP1)
+string  i_01_textSize   = input(TXT_SIZE,    "",            inline = "12", group = GP1, options = ["tiny", "small", "normal", "large", "huge", "auto"])
+color   i_01_c_bg       = input(C_BG,        BG,            inline = "12", group = GP1)
+
+var string GP2 = "②"
+string  i_02            = input(F402,        "",            inline = "21", group = GP2, 
+  options = [F_NA, F400, F401, F402, F403, F404, F405,
+             F000, F001, F002, F003, F004, F005, F006, F007, F008, F009, F010, F011, F012, F013, F014, F015, F016, F017, F018, F019, F020, F021, F022, F023, F024, F025, F026, F027, F028, F029, F030, F031, F032, F033, F034, F035, F036, F037, F038, 
+             F100, F101, F102, F103, F104, F105, F106, F107, F108, F109, F110, F111, F112, F113, F114, F115, F116, F117, F118, F119, F120, F121, F122, F123, F124, F125, F126, F127, F128, F129, F130, F131, F132, F133, F134, F135, F136, F137, F138, F139, F140, F141, F142, F143, F144, F145, F146, F147, F148, F149, F150, F151, F152, F153, F154, F155, F156, F157, F158, F159, F160, F161, F162, F163, F164, F165, F166,
+             F200, F201, F202, F203, F204, F205, F206, F207, F208, F209, F210, F211, F212, F213, F214, F215, F216, F217, F218, F219, F220, F221, F222, F223, F224, F225, F226, F227, F228, F229, F230, F231, F232, F233, F234, F235, F236, F237, F238, F239, F240, F241, F242, F243, F244, F245,
+             F300, F301, F302, F303, F304, F305, F306, F307, F308, F309, F310, F311, F312, F313, F314, F315, F316, F317, F318, F319, F320, F321, F322, F323, F324, F325, F326, F327, F328, F329, F330, F331, F332, F333, F334, F335, F336, F337, F338, F339, F340, F341, F342, F343, F344, F345, F346, F347, F348, F349, F350, F351, F352, F353, F354, F355, F356, F357, F358, F359, F360, F361, F362, F363, F364, F365, F366, F367, F368, F369, F370, F371, F372, F373])
+string  i_02_period     = input(FY,          "",            inline = "21", group = GP2, options = [FY, FQ, TT])
+int     i_02_precision  = input(2,           "",            inline = "21", group = GP2, minval = 0, maxval = 10)
+string  i_02_legend     = input("",          " Legend",     inline = "22", group = GP2)
+string  i_02_textSize   = input(TXT_SIZE,    "",            inline = "22", group = GP2, options = ["tiny", "small", "normal", "large", "huge", "auto"])
+color   i_02_c_bg       = input(C_BG,        BG,            inline = "22", group = GP2)
+
+var string GP3 = "③"
+string  i_03            = input(F403,        "",            inline = "31", group = GP3, 
+  options = [F_NA, F400, F401, F402, F403, F404, F405,
+             F000, F001, F002, F003, F004, F005, F006, F007, F008, F009, F010, F011, F012, F013, F014, F015, F016, F017, F018, F019, F020, F021, F022, F023, F024, F025, F026, F027, F028, F029, F030, F031, F032, F033, F034, F035, F036, F037, F038, 
+             F100, F101, F102, F103, F104, F105, F106, F107, F108, F109, F110, F111, F112, F113, F114, F115, F116, F117, F118, F119, F120, F121, F122, F123, F124, F125, F126, F127, F128, F129, F130, F131, F132, F133, F134, F135, F136, F137, F138, F139, F140, F141, F142, F143, F144, F145, F146, F147, F148, F149, F150, F151, F152, F153, F154, F155, F156, F157, F158, F159, F160, F161, F162, F163, F164, F165, F166,
+             F200, F201, F202, F203, F204, F205, F206, F207, F208, F209, F210, F211, F212, F213, F214, F215, F216, F217, F218, F219, F220, F221, F222, F223, F224, F225, F226, F227, F228, F229, F230, F231, F232, F233, F234, F235, F236, F237, F238, F239, F240, F241, F242, F243, F244, F245,
+             F300, F301, F302, F303, F304, F305, F306, F307, F308, F309, F310, F311, F312, F313, F314, F315, F316, F317, F318, F319, F320, F321, F322, F323, F324, F325, F326, F327, F328, F329, F330, F331, F332, F333, F334, F335, F336, F337, F338, F339, F340, F341, F342, F343, F344, F345, F346, F347, F348, F349, F350, F351, F352, F353, F354, F355, F356, F357, F358, F359, F360, F361, F362, F363, F364, F365, F366, F367, F368, F369, F370, F371, F372, F373])
+string  i_03_period     = input(FY,          "",            inline = "31", group = GP3, options = [FY, FQ, TT])
+int     i_03_precision  = input(2,           "",            inline = "31", group = GP3, minval = 0, maxval = 10)
+string  i_03_legend     = input("",          " Legend",     inline = "32", group = GP3)
+string  i_03_textSize   = input(TXT_SIZE,    "",            inline = "32", group = GP3, options = ["tiny", "small", "normal", "large", "huge", "auto"])
+color   i_03_c_bg       = input(C_BG,        BG,            inline = "32", group = GP3)
+
+var string GP4 = "④"
+string  i_04            = input(F404,        "",            inline = "41", group = GP4, 
+  options = [F_NA, F400, F401, F402, F403, F404, F405,
+             F000, F001, F002, F003, F004, F005, F006, F007, F008, F009, F010, F011, F012, F013, F014, F015, F016, F017, F018, F019, F020, F021, F022, F023, F024, F025, F026, F027, F028, F029, F030, F031, F032, F033, F034, F035, F036, F037, F038, 
+             F100, F101, F102, F103, F104, F105, F106, F107, F108, F109, F110, F111, F112, F113, F114, F115, F116, F117, F118, F119, F120, F121, F122, F123, F124, F125, F126, F127, F128, F129, F130, F131, F132, F133, F134, F135, F136, F137, F138, F139, F140, F141, F142, F143, F144, F145, F146, F147, F148, F149, F150, F151, F152, F153, F154, F155, F156, F157, F158, F159, F160, F161, F162, F163, F164, F165, F166,
+             F200, F201, F202, F203, F204, F205, F206, F207, F208, F209, F210, F211, F212, F213, F214, F215, F216, F217, F218, F219, F220, F221, F222, F223, F224, F225, F226, F227, F228, F229, F230, F231, F232, F233, F234, F235, F236, F237, F238, F239, F240, F241, F242, F243, F244, F245,
+             F300, F301, F302, F303, F304, F305, F306, F307, F308, F309, F310, F311, F312, F313, F314, F315, F316, F317, F318, F319, F320, F321, F322, F323, F324, F325, F326, F327, F328, F329, F330, F331, F332, F333, F334, F335, F336, F337, F338, F339, F340, F341, F342, F343, F344, F345, F346, F347, F348, F349, F350, F351, F352, F353, F354, F355, F356, F357, F358, F359, F360, F361, F362, F363, F364, F365, F366, F367, F368, F369, F370, F371, F372, F373])
+string  i_04_period     = input(FY,          "",            inline = "41", group = GP4, options = [FY, FQ, TT])
+int     i_04_precision  = input(2,           "",            inline = "41", group = GP4, minval = 0, maxval = 10)
+string  i_04_legend     = input("",          " Legend",     inline = "42", group = GP4)
+string  i_04_textSize   = input(TXT_SIZE,    "",            inline = "42", group = GP4, options = ["tiny", "small", "normal", "large", "huge", "auto"])
+color   i_04_c_bg       = input(C_BG,        BG,            inline = "42", group = GP4)
+
+var string GP5 = "⑤"
+string  i_05            = input(F405,        "",            inline = "51", group = GP5, 
+  options = [F_NA, F400, F401, F402, F403, F404, F405,
+             F000, F001, F002, F003, F004, F005, F006, F007, F008, F009, F010, F011, F012, F013, F014, F015, F016, F017, F018, F019, F020, F021, F022, F023, F024, F025, F026, F027, F028, F029, F030, F031, F032, F033, F034, F035, F036, F037, F038, 
+             F100, F101, F102, F103, F104, F105, F106, F107, F108, F109, F110, F111, F112, F113, F114, F115, F116, F117, F118, F119, F120, F121, F122, F123, F124, F125, F126, F127, F128, F129, F130, F131, F132, F133, F134, F135, F136, F137, F138, F139, F140, F141, F142, F143, F144, F145, F146, F147, F148, F149, F150, F151, F152, F153, F154, F155, F156, F157, F158, F159, F160, F161, F162, F163, F164, F165, F166,
+             F200, F201, F202, F203, F204, F205, F206, F207, F208, F209, F210, F211, F212, F213, F214, F215, F216, F217, F218, F219, F220, F221, F222, F223, F224, F225, F226, F227, F228, F229, F230, F231, F232, F233, F234, F235, F236, F237, F238, F239, F240, F241, F242, F243, F244, F245,
+             F300, F301, F302, F303, F304, F305, F306, F307, F308, F309, F310, F311, F312, F313, F314, F315, F316, F317, F318, F319, F320, F321, F322, F323, F324, F325, F326, F327, F328, F329, F330, F331, F332, F333, F334, F335, F336, F337, F338, F339, F340, F341, F342, F343, F344, F345, F346, F347, F348, F349, F350, F351, F352, F353, F354, F355, F356, F357, F358, F359, F360, F361, F362, F363, F364, F365, F366, F367, F368, F369, F370, F371, F372, F373])
+string  i_05_period     = input(FY,          "",            inline = "51", group = GP5, options = [FY, FQ, TT])
+int     i_05_precision  = input(2,           "",            inline = "51", group = GP5, minval = 0, maxval = 10)
+string  i_05_legend     = input("",          " Legend",     inline = "52", group = GP5)
+string  i_05_textSize   = input(TXT_SIZE,    "",            inline = "52", group = GP5, options = ["tiny", "small", "normal", "large", "huge", "auto"])
+color   i_05_c_bg       = input(C_BG,        BG,            inline = "52", group = GP5)
+
+var string GP6 = "⑥"
+string  i_06            = input(F013,        "",            inline = "61", group = GP6, 
+  options = [F_NA, F400, F401, F402, F403, F404, F405,
+             F000, F001, F002, F003, F004, F005, F006, F007, F008, F009, F010, F011, F012, F013, F014, F015, F016, F017, F018, F019, F020, F021, F022, F023, F024, F025, F026, F027, F028, F029, F030, F031, F032, F033, F034, F035, F036, F037, F038, 
+             F100, F101, F102, F103, F104, F105, F106, F107, F108, F109, F110, F111, F112, F113, F114, F115, F116, F117, F118, F119, F120, F121, F122, F123, F124, F125, F126, F127, F128, F129, F130, F131, F132, F133, F134, F135, F136, F137, F138, F139, F140, F141, F142, F143, F144, F145, F146, F147, F148, F149, F150, F151, F152, F153, F154, F155, F156, F157, F158, F159, F160, F161, F162, F163, F164, F165, F166,
+             F200, F201, F202, F203, F204, F205, F206, F207, F208, F209, F210, F211, F212, F213, F214, F215, F216, F217, F218, F219, F220, F221, F222, F223, F224, F225, F226, F227, F228, F229, F230, F231, F232, F233, F234, F235, F236, F237, F238, F239, F240, F241, F242, F243, F244, F245,
+             F300, F301, F302, F303, F304, F305, F306, F307, F308, F309, F310, F311, F312, F313, F314, F315, F316, F317, F318, F319, F320, F321, F322, F323, F324, F325, F326, F327, F328, F329, F330, F331, F332, F333, F334, F335, F336, F337, F338, F339, F340, F341, F342, F343, F344, F345, F346, F347, F348, F349, F350, F351, F352, F353, F354, F355, F356, F357, F358, F359, F360, F361, F362, F363, F364, F365, F366, F367, F368, F369, F370, F371, F372, F373])
+string  i_06_period     = input(FY,          "",            inline = "61", group = GP6, options = [FY, FQ, TT])
+int     i_06_precision  = input(3,           "",            inline = "61", group = GP6, minval = 0, maxval = 10)
+string  i_06_legend     = input("",          " Legend",     inline = "62", group = GP6)
+string  i_06_textSize   = input(TXT_SIZE,    "",            inline = "62", group = GP6, options = ["tiny", "small", "normal", "large", "huge", "auto"])
+color   i_06_c_bg       = input(C_BG,        BG,            inline = "62", group = GP6)
+
+var string GP7 = "⑦"
+string  i_07            = input(F364,        "",            inline = "71", group = GP7, 
+  options = [F_NA, F400, F401, F402, F403, F404, F405,
+             F000, F001, F002, F003, F004, F005, F006, F007, F008, F009, F010, F011, F012, F013, F014, F015, F016, F017, F018, F019, F020, F021, F022, F023, F024, F025, F026, F027, F028, F029, F030, F031, F032, F033, F034, F035, F036, F037, F038, 
+             F100, F101, F102, F103, F104, F105, F106, F107, F108, F109, F110, F111, F112, F113, F114, F115, F116, F117, F118, F119, F120, F121, F122, F123, F124, F125, F126, F127, F128, F129, F130, F131, F132, F133, F134, F135, F136, F137, F138, F139, F140, F141, F142, F143, F144, F145, F146, F147, F148, F149, F150, F151, F152, F153, F154, F155, F156, F157, F158, F159, F160, F161, F162, F163, F164, F165, F166,
+             F200, F201, F202, F203, F204, F205, F206, F207, F208, F209, F210, F211, F212, F213, F214, F215, F216, F217, F218, F219, F220, F221, F222, F223, F224, F225, F226, F227, F228, F229, F230, F231, F232, F233, F234, F235, F236, F237, F238, F239, F240, F241, F242, F243, F244, F245,
+             F300, F301, F302, F303, F304, F305, F306, F307, F308, F309, F310, F311, F312, F313, F314, F315, F316, F317, F318, F319, F320, F321, F322, F323, F324, F325, F326, F327, F328, F329, F330, F331, F332, F333, F334, F335, F336, F337, F338, F339, F340, F341, F342, F343, F344, F345, F346, F347, F348, F349, F350, F351, F352, F353, F354, F355, F356, F357, F358, F359, F360, F361, F362, F363, F364, F365, F366, F367, F368, F369, F370, F371, F372, F373])
+string  i_07_period     = input(FY,          "",            inline = "71", group = GP7, options = [FY, FQ, TT])
+int     i_07_precision  = input(3,           "",            inline = "71", group = GP7, minval = 0, maxval = 10)
+string  i_07_legend     = input("",          " Legend",     inline = "72", group = GP7)
+string  i_07_textSize   = input(TXT_SIZE,    "",            inline = "72", group = GP7, options = ["tiny", "small", "normal", "large", "huge", "auto"])
+color   i_07_c_bg       = input(C_BG,        BG,            inline = "72", group = GP7)
+
+var string GP8 = "⑧"
+string  i_08            = input(F373,        "",            inline = "81", group = GP8, 
+  options = [F_NA, F400, F401, F402, F403, F404, F405,
+             F000, F001, F002, F003, F004, F005, F006, F007, F008, F009, F010, F011, F012, F013, F014, F015, F016, F017, F018, F019, F020, F021, F022, F023, F024, F025, F026, F027, F028, F029, F030, F031, F032, F033, F034, F035, F036, F037, F038, 
+             F100, F101, F102, F103, F104, F105, F106, F107, F108, F109, F110, F111, F112, F113, F114, F115, F116, F117, F118, F119, F120, F121, F122, F123, F124, F125, F126, F127, F128, F129, F130, F131, F132, F133, F134, F135, F136, F137, F138, F139, F140, F141, F142, F143, F144, F145, F146, F147, F148, F149, F150, F151, F152, F153, F154, F155, F156, F157, F158, F159, F160, F161, F162, F163, F164, F165, F166,
+             F200, F201, F202, F203, F204, F205, F206, F207, F208, F209, F210, F211, F212, F213, F214, F215, F216, F217, F218, F219, F220, F221, F222, F223, F224, F225, F226, F227, F228, F229, F230, F231, F232, F233, F234, F235, F236, F237, F238, F239, F240, F241, F242, F243, F244, F245,
+             F300, F301, F302, F303, F304, F305, F306, F307, F308, F309, F310, F311, F312, F313, F314, F315, F316, F317, F318, F319, F320, F321, F322, F323, F324, F325, F326, F327, F328, F329, F330, F331, F332, F333, F334, F335, F336, F337, F338, F339, F340, F341, F342, F343, F344, F345, F346, F347, F348, F349, F350, F351, F352, F353, F354, F355, F356, F357, F358, F359, F360, F361, F362, F363, F364, F365, F366, F367, F368, F369, F370, F371, F372, F373])
+string  i_08_period     = input(FY,          "",            inline = "81", group = GP8, options = [FY, FQ, TT])
+int     i_08_precision  = input(2,           "",            inline = "81", group = GP8, minval = 0, maxval = 10)
+string  i_08_legend     = input("",          " Legend",     inline = "82", group = GP8)
+string  i_08_textSize   = input(TXT_SIZE,    "",            inline = "82", group = GP8, options = ["tiny", "small", "normal", "large", "huge", "auto"])
+color   i_08_c_bg       = input(C_BG,        BG,            inline = "82", group = GP8)
+
+var string GP9 = "⑨"
+string  i_09            = input(F_NA,        "",            inline = "91", group = GP9, 
+  options = [F_NA, F400, F401, F402, F403, F404, F405,
+             F000, F001, F002, F003, F004, F005, F006, F007, F008, F009, F010, F011, F012, F013, F014, F015, F016, F017, F018, F019, F020, F021, F022, F023, F024, F025, F026, F027, F028, F029, F030, F031, F032, F033, F034, F035, F036, F037, F038, 
+             F100, F101, F102, F103, F104, F105, F106, F107, F108, F109, F110, F111, F112, F113, F114, F115, F116, F117, F118, F119, F120, F121, F122, F123, F124, F125, F126, F127, F128, F129, F130, F131, F132, F133, F134, F135, F136, F137, F138, F139, F140, F141, F142, F143, F144, F145, F146, F147, F148, F149, F150, F151, F152, F153, F154, F155, F156, F157, F158, F159, F160, F161, F162, F163, F164, F165, F166,
+             F200, F201, F202, F203, F204, F205, F206, F207, F208, F209, F210, F211, F212, F213, F214, F215, F216, F217, F218, F219, F220, F221, F222, F223, F224, F225, F226, F227, F228, F229, F230, F231, F232, F233, F234, F235, F236, F237, F238, F239, F240, F241, F242, F243, F244, F245,
+             F300, F301, F302, F303, F304, F305, F306, F307, F308, F309, F310, F311, F312, F313, F314, F315, F316, F317, F318, F319, F320, F321, F322, F323, F324, F325, F326, F327, F328, F329, F330, F331, F332, F333, F334, F335, F336, F337, F338, F339, F340, F341, F342, F343, F344, F345, F346, F347, F348, F349, F350, F351, F352, F353, F354, F355, F356, F357, F358, F359, F360, F361, F362, F363, F364, F365, F366, F367, F368, F369, F370, F371, F372, F373])
+string  i_09_period     = input(FY,          "",            inline = "91", group = GP9, options = [FY, FQ, TT])
+int     i_09_precision  = input(0,           "",            inline = "91", group = GP9, minval = 0, maxval = 10)
+string  i_09_legend     = input("",          " Legend",     inline = "92", group = GP9)
+string  i_09_textSize   = input(TXT_SIZE,    "",            inline = "92", group = GP9, options = ["tiny", "small", "normal", "large", "huge", "auto"])
+color   i_09_c_bg       = input(C_BG,        BG,            inline = "92", group = GP9)
+
+// Table used to display values.
+var table display = table.new(i_tableYpos + "_" + i_tableXpos, 2, 10, border_width = 2)
+// }
+
+
+
+// ———————————————————— Functions {
+
+// ————— Function returns, from the `_userFinancialChoice` `options` `Fxxx` string, the `id` argument to be used with a `financial()` call, 
+//       unless a calculated financial in the `F4xx` range was chosen.
+f_getId(_userFinancialChoice) =>
+    // Dependencies: `Fxxx` constants.
+
+    string _return = 
+      _userFinancialChoice == F001 ? "AFTER_TAX_OTHER_INCOME" :
+      _userFinancialChoice == F002 ? "BASIC_SHARES_OUTSTANDING" :
+      _userFinancialChoice == F003 ? "COST_OF_GOODS_EXCL_DEP_AMORT" :
+      _userFinancialChoice == F004 ? "COST_OF_GOODS" :
+      _userFinancialChoice == F005 ? "DEP_AMORT_EXP_INCOME_S" :
+      _userFinancialChoice == F006 ? "DILUTED_NET_INCOME" :
+      _userFinancialChoice == F007 ? "DILUTED_SHARES_OUTSTANDING" :
+      _userFinancialChoice == F008 ? "DILUTION_ADJUSTMENT" :
+      _userFinancialChoice == F009 ? "DISCONTINUED_OPERATIONS" :
+      _userFinancialChoice == F010 ? "EARNINGS_PER_SHARE_BASIC" :
+      _userFinancialChoice == F011 ? "EARNINGS_PER_SHARE_DILUTED" :
+      _userFinancialChoice == F012 ? "EBIT" :
+      _userFinancialChoice == F013 ? "EBITDA" :
+      _userFinancialChoice == F014 ? "EQUITY_IN_EARNINGS" :
+      _userFinancialChoice == F015 ? "GROSS_PROFIT" :
+      _userFinancialChoice == F016 ? "INCOME_TAX" :
+      _userFinancialChoice == F017 ? "INTEREST_CAPITALIZED" :
+      _userFinancialChoice == F018 ? "INTEREST_EXPENSE_ON_DEBT" :
+      _userFinancialChoice == F019 ? "MINORITY_INTEREST_EXP" :
+      _userFinancialChoice == F020 ? "NET_INCOME_BEF_DISC_OPER" :
+      _userFinancialChoice == F021 ? "NET_INCOME" :
+      _userFinancialChoice == F022 ? "NON_OPER_INCOME" :
+      _userFinancialChoice == F023 ? "NON_OPER_INTEREST_EXP" :
+      _userFinancialChoice == F024 ? "NON_OPER_INTEREST_INCOME" :
+      _userFinancialChoice == F025 ? "OPER_INCOME" :
+      _userFinancialChoice == F026 ? "OPERATING_EXPENSES" :
+      _userFinancialChoice == F027 ? "OTHER_INCOME" :
+      _userFinancialChoice == F028 ? "OTHER_OPER_EXPENSE_TOTAL" :
+      _userFinancialChoice == F029 ? "PREFERRED_DIVIDENDS" :
+      _userFinancialChoice == F030 ? "PRETAX_EQUITY_IN_EARNINGS" :
+      _userFinancialChoice == F031 ? "PRETAX_INCOME" :
+      _userFinancialChoice == F032 ? "RESEARCH_AND_DEV" :
+      _userFinancialChoice == F033 ? "SELL_GEN_ADMIN_EXP_OTHER" :
+      _userFinancialChoice == F034 ? "SELL_GEN_ADMIN_EXP_TOTAL" :
+      _userFinancialChoice == F035 ? "TOTAL_NON_OPER_INCOME" :
+      _userFinancialChoice == F036 ? "TOTAL_OPER_EXPENSE" :
+      _userFinancialChoice == F037 ? "TOTAL_REVENUE" :
+      _userFinancialChoice == F038 ? "UNUSUAL_EXPENSE_INC" :
+
+      _userFinancialChoice == F101 ? "ACCOUNTS_PAYABLE" :
+      _userFinancialChoice == F102 ? "ACCOUNTS_RECEIVABLES_NET" :
+      _userFinancialChoice == F103 ? "ACCRUED_PAYROLL" :
+      _userFinancialChoice == F104 ? "ACCUM_DEPREC_TOTAL" :
+      _userFinancialChoice == F105 ? "ADDITIONAL_PAID_IN_CAPITAL" :
+      _userFinancialChoice == F106 ? "BOOK_TANGIBLE_PER_SHARE" :
+      _userFinancialChoice == F107 ? "BOOK_VALUE_PER_SHARE" :
+      _userFinancialChoice == F108 ? "CAPITAL_LEASE_OBLIGATIONS" :
+      _userFinancialChoice == F109 ? "CAPITAL_OPERATING_LEASE_OBLIGATIONS" :
+      _userFinancialChoice == F110 ? "CASH_N_EQUIVALENTS" :
+      _userFinancialChoice == F111 ? "CASH_N_SHORT_TERM_INVEST" :
+      _userFinancialChoice == F112 ? "COMMON_EQUITY_TOTAL" :
+      _userFinancialChoice == F113 ? "COMMON_STOCK_PAR" :
+      _userFinancialChoice == F114 ? "CURRENT_PORT_DEBT_CAPITAL_LEASES" :
+      _userFinancialChoice == F115 ? "DEFERRED_INCOME_CURRENT" :
+      _userFinancialChoice == F116 ? "DEFERRED_INCOME_NON_CURRENT" :
+      _userFinancialChoice == F117 ? "DEFERRED_TAX_ASSESTS" :
+      _userFinancialChoice == F118 ? "DEFERRED_TAX_LIABILITIES" :
+      _userFinancialChoice == F119 ? "DIVIDENDS_PAYABLE" :
+      _userFinancialChoice == F120 ? "GOODWILL" :
+      _userFinancialChoice == F121 ? "INCOME_TAX_PAYABLE" :
+      _userFinancialChoice == F122 ? "INTANGIBLES_NET" :
+      _userFinancialChoice == F123 ? "INVENTORY_FINISHED_GOODS" :
+      _userFinancialChoice == F124 ? "INVENTORY_PROGRESS_PAYMENTS" :
+      _userFinancialChoice == F125 ? "INVENTORY_RAW_MATERIALS" :
+      _userFinancialChoice == F126 ? "INVENTORY_WORK_IN_PROGRESS" :
+      _userFinancialChoice == F127 ? "INVESTMENTS_IN_UNCONCSOLIDATE" :
+      _userFinancialChoice == F128 ? "LONG_TERM_DEBT_EXCL_CAPITAL_LEASE" :
+      _userFinancialChoice == F129 ? "LONG_TERM_DEBT" :
+      _userFinancialChoice == F130 ? "LONG_TERM_INVESTMENTS" :
+      _userFinancialChoice == F131 ? "LONG_TERM_NOTE_RECEIVABLE" :
+      _userFinancialChoice == F132 ? "LONG_TERM_OTHER_ASSETS_TOTAL" :
+      _userFinancialChoice == F133 ? "MINORITY_INTEREST" :
+      _userFinancialChoice == F134 ? "NOTES_PAYABLE_SHORT_TERM_DEBT" :
+      _userFinancialChoice == F135 ? "OPERATING_LEASE_LIABILITIES" :
+      _userFinancialChoice == F136 ? "OTHER_COMMON_EQUITY" :
+      _userFinancialChoice == F137 ? "OTHER_CURRENT_ASSETS_TOTAL" :
+      _userFinancialChoice == F138 ? "OTHER_CURRENT_LIABILITIES" :
+      _userFinancialChoice == F139 ? "OTHER_INTANGIBLES_NET" :
+      _userFinancialChoice == F140 ? "OTHER_INVESTMENTS" :
+      _userFinancialChoice == F141 ? "OTHER_LIABILITIES_TOTAL" :
+      _userFinancialChoice == F142 ? "OTHER_RECEIVABLES" :
+      _userFinancialChoice == F143 ? "OTHER_SHORT_TERM_DEBT" :
+      _userFinancialChoice == F144 ? "PAID_IN_CAPITAL" :
+      _userFinancialChoice == F145 ? "PPE_TOTAL_GROSS" :
+      _userFinancialChoice == F146 ? "PPE_TOTAL_NET" :
+      _userFinancialChoice == F147 ? "PREFERRED_STOCK_CARRYING_VALUE" :
+      _userFinancialChoice == F148 ? "PREPAID_EXPENSES" :
+      _userFinancialChoice == F149 ? "PROVISION_F_RISKS" :
+      _userFinancialChoice == F150 ? "RETAINED_EARNINGS" :
+      _userFinancialChoice == F151 ? "SHORT_TERM_DEBT_EXCL_CURRENT_PORT" :
+      _userFinancialChoice == F152 ? "SHORT_TERM_DEBT" :
+      _userFinancialChoice == F153 ? "SHORT_TERM_INVEST" :
+      _userFinancialChoice == F154 ? "SHRHLDRS_EQUITY" :
+      _userFinancialChoice == F155 ? "TOTAL_ASSETS" :
+      _userFinancialChoice == F156 ? "TOTAL_CURRENT_ASSETS" :
+      _userFinancialChoice == F157 ? "TOTAL_CURRENT_LIABILITIES" :
+      _userFinancialChoice == F158 ? "TOTAL_DEBT" :
+      _userFinancialChoice == F159 ? "TOTAL_EQUITY" :
+      _userFinancialChoice == F160 ? "TOTAL_INVENTORY" :
+      _userFinancialChoice == F161 ? "TOTAL_LIABILITIES" :
+      _userFinancialChoice == F162 ? "TOTAL_LIABILITIES_SHRHLDRS_EQUITY" :
+      _userFinancialChoice == F163 ? "TOTAL_NON_CURRENT_ASSETS" :
+      _userFinancialChoice == F164 ? "TOTAL_NON_CURRENT_LIABILITIES" :
+      _userFinancialChoice == F165 ? "TOTAL_RECEIVABLES_NET" :
+      _userFinancialChoice == F166 ? "TREASURY_STOCK_COMMON" :
+
+      _userFinancialChoice == F201 ? "AMORTIZATION" :
+      _userFinancialChoice == F202 ? "CAPITAL_EXPENDITURES_FIXED_ASSETS" :
+      _userFinancialChoice == F203 ? "CAPITAL_EXPENDITURES" :
+      _userFinancialChoice == F204 ? "CAPITAL_EXPENDITURES_OTHER_ASSETS" :
+      _userFinancialChoice == F205 ? "CASH_F_FINANCING_ACTIVITIES" :
+      _userFinancialChoice == F206 ? "CASH_F_INVESTING_ACTIVITIES" :
+      _userFinancialChoice == F207 ? "CASH_F_OPERATING_ACTIVITIES" :
+      _userFinancialChoice == F208 ? "CASH_FLOW_DEFERRED_TAXES" :
+      _userFinancialChoice == F209 ? "CASH_FLOW_DEPRECATION_N_AMORTIZATION" :
+      _userFinancialChoice == F210 ? "CHANGE_IN_ACCOUNTS_PAYABLE" :
+      _userFinancialChoice == F211 ? "CHANGE_IN_ACCOUNTS_RECEIVABLE" :
+      _userFinancialChoice == F212 ? "CHANGE_IN_ACCRUED_EXPENSES" :
+      _userFinancialChoice == F213 ? "CHANGE_IN_INVENTORIES" :
+      _userFinancialChoice == F214 ? "CHANGE_IN_OTHER_ASSETS" :
+      _userFinancialChoice == F215 ? "CHANGE_IN_TAXES_PAYABLE" :
+      _userFinancialChoice == F216 ? "CHANGES_IN_WORKING_CAPITAL" :
+      _userFinancialChoice == F217 ? "COMMON_DIVIDENDS_CASH_FLOW" :
+      _userFinancialChoice == F218 ? "DEPRECIATION_DEPLETION" :
+      _userFinancialChoice == F219 ? "FREE_CASH_FLOW" :
+      _userFinancialChoice == F220 ? "FUNDS_F_OPERATIONS" :
+      _userFinancialChoice == F221 ? "ISSUANCE_OF_DEBT_NET" :
+      _userFinancialChoice == F222 ? "ISSUANCE_OF_LONG_TERM_DEBT" :
+      _userFinancialChoice == F223 ? "ISSUANCE_OF_OTHER_DEBT" :
+      _userFinancialChoice == F224 ? "ISSUANCE_OF_SHORT_TERM_DEBT" :
+      _userFinancialChoice == F225 ? "ISSUANCE_OF_STOCK_NET" :
+      _userFinancialChoice == F226 ? "NET_INCOME_STARTING_LINE" :
+      _userFinancialChoice == F227 ? "NON_CASH_ITEMS" :
+      _userFinancialChoice == F228 ? "OTHER_FINANCING_CASH_FLOW_ITEMS_TOTAL" :
+      _userFinancialChoice == F229 ? "OTHER_FINANCING_CASH_FLOW_SOURCES" :
+      _userFinancialChoice == F230 ? "OTHER_FINANCING_CASH_FLOW_USES" :
+      _userFinancialChoice == F231 ? "OTHER_INVESTING_CASH_FLOW_ITEMS_TOTAL" :
+      _userFinancialChoice == F232 ? "OTHER_INVESTING_CASH_FLOW_SOURCES" :
+      _userFinancialChoice == F233 ? "OTHER_INVESTING_CASH_FLOW_USES" :
+      _userFinancialChoice == F234 ? "PREFERRED_DIVIDENDS_CASH_FLOW" :
+      _userFinancialChoice == F235 ? "PURCHASE_OF_BUSINESS" :
+      _userFinancialChoice == F236 ? "PURCHASE_OF_INVESTMENTS" :
+      _userFinancialChoice == F237 ? "PURCHASE_OF_STOCK" :
+      _userFinancialChoice == F238 ? "PURCHASE_SALE_BUSINESS" :
+      _userFinancialChoice == F239 ? "PURCHASE_SALE_INVESTMENTS" :
+      _userFinancialChoice == F240 ? "REDUCTION_OF_LONG_TERM_DEBT" :
+      _userFinancialChoice == F241 ? "SALE_OF_STOCK" :
+      _userFinancialChoice == F242 ? "SALES_OF_BUSINESS" :
+      _userFinancialChoice == F243 ? "SALES_OF_INVESTMENTS" :
+      _userFinancialChoice == F244 ? "SUPPLYING_OF_LONG_TERM_DEBT" :
+      _userFinancialChoice == F245 ? "TOTAL_CASH_DIVIDENDS_PAID" :
+
+      _userFinancialChoice == F301 ? "ACCRUALS_RATIO" :
+      _userFinancialChoice == F302 ? "ALTMAN_Z_SCORE" :
+      _userFinancialChoice == F303 ? "ASSET_TURNOVER" :
+      _userFinancialChoice == F304 ? "BENEISH_M_SCORE" :
+      _userFinancialChoice == F305 ? "BUYBACK_YIELD" :
+      _userFinancialChoice == F306 ? "CASH_CONVERSION_CYCLE" :
+      _userFinancialChoice == F307 ? "CASH_TO_DEBT" :
+      _userFinancialChoice == F308 ? "COGS_TO_REVENUE" :
+      _userFinancialChoice == F309 ? "CURRENT_RATIO" :
+      _userFinancialChoice == F310 ? "DAY_SALES_OUT" :
+      _userFinancialChoice == F311 ? "DAYS_INVENT" :
+      _userFinancialChoice == F312 ? "DAYS_PAY" :
+      _userFinancialChoice == F313 ? "DEBT_TO_ASSET" :
+      _userFinancialChoice == F314 ? "DEBT_TO_EBITDA" :
+      _userFinancialChoice == F315 ? "DEBT_TO_EQUITY" :
+      _userFinancialChoice == F316 ? "DEBT_TO_REVENUE" :
+      _userFinancialChoice == F317 ? "DIVIDEND_PAYOUT_RATIO" :
+      _userFinancialChoice == F318 ? "DIVIDENDS_YIELD" :
+      _userFinancialChoice == F319 ? "DPS_COMMON_STOCK_PRIM_ISSUE" :
+      _userFinancialChoice == F320 ? "EARNINGS_ESTIMATE" :
+      _userFinancialChoice == F321 ? "EARNINGS_PER_SHARE_BASIC_ONE_YEAR_GROWTH" :
+      _userFinancialChoice == F322 ? "EARNINGS_PER_SHARE_DILUTED_ONE_YEAR_GROWTH" :
+      _userFinancialChoice == F323 ? "EBITDA_MARGIN" :
+      _userFinancialChoice == F324 ? "EFFECTIVE_INTEREST_RATE_ON_DEBT" :
+      _userFinancialChoice == F325 ? "ENTERPRISE_VALUE_EBITDA" :
+      _userFinancialChoice == F326 ? "ENTERPRISE_VALUE" :
+      _userFinancialChoice == F327 ? "EQUITY_TO_ASSET" :
+      _userFinancialChoice == F328 ? "EV_EBIT" :
+      _userFinancialChoice == F329 ? "EV_REVENUE" :
+      _userFinancialChoice == F330 ? "FLOAT_SHARES_OUTSTANDING" :
+      _userFinancialChoice == F331 ? "FREE_CASH_FLOW_MARGIN" :
+      _userFinancialChoice == F332 ? "FULMER_H_FACTOR" :
+      _userFinancialChoice == F333 ? "GOODWILL_TO_ASSET" :
+      _userFinancialChoice == F334 ? "GRAHAM_NUMBERS" :
+      _userFinancialChoice == F335 ? "GROSS_MARGIN" :
+      _userFinancialChoice == F336 ? "GROSS_PROFIT_TO_ASSET" :
+      _userFinancialChoice == F337 ? "INTERST_COVER" :
+      _userFinancialChoice == F338 ? "INVENT_TO_REVENUE" :
+      _userFinancialChoice == F339 ? "INVENT_TURNOVER" :
+      _userFinancialChoice == F340 ? "KZ_INDEX" :
+      _userFinancialChoice == F341 ? "LONG_TERM_DEBT_TO_ASSETS" :
+      _userFinancialChoice == F342 ? "NCAVPS_RATIO" :
+      _userFinancialChoice == F343 ? "NET_INCOME_PER_EMPLOYEE" :
+      _userFinancialChoice == F344 ? "NET_MARGIN" :
+      _userFinancialChoice == F345 ? "NUMBER_OF_EMPLOYEES" :
+      _userFinancialChoice == F346 ? "OPERATING_EARNINGS_YIELD" :
+      _userFinancialChoice == F347 ? "OPERATING_MARGIN" :
+      _userFinancialChoice == F348 ? "PEG_RATIO" :
+      _userFinancialChoice == F349 ? "PIOTROSKI_F_SCORE" :
+      _userFinancialChoice == F350 ? "PRICE_EARNINGS_FORWARD" :
+      _userFinancialChoice == F351 ? "PRICE_SALES_FORWARD" :
+      _userFinancialChoice == F352 ? "PRICE_TO_FREE_CASH_FLOW" :
+      _userFinancialChoice == F353 ? "PRICE_TO_TANGIBLE_BOOK" :
+      _userFinancialChoice == F354 ? "QUALITY_RATIO" :
+      _userFinancialChoice == F355 ? "QUICK_RATIO" :
+      _userFinancialChoice == F356 ? "RESEARCH_AND_DEVELOP_TO_REVENUE" :
+      _userFinancialChoice == F357 ? "RETURN_ON_ASSETS" :
+      _userFinancialChoice == F358 ? "RETURN_ON_EQUITY_ADJUST_TO_BOOK" :
+      _userFinancialChoice == F359 ? "RETURN_ON_EQUITY" :
+      _userFinancialChoice == F360 ? "RETURN_ON_INVESTED_CAPITAL" :
+      _userFinancialChoice == F361 ? "RETURN_ON_TANG_ASSETS" :
+      _userFinancialChoice == F362 ? "RETURN_ON_TANG_EQUITY" :
+      _userFinancialChoice == F363 ? "REVENUE_ONE_YEAR_GROWTH" :
+      _userFinancialChoice == F364 ? "REVENUE_PER_EMPLOYEE" :
+      _userFinancialChoice == F365 ? "SALES_ESTIMATES" :
+      _userFinancialChoice == F366 ? "SHARE_BUYBACK_RATIO" :
+      _userFinancialChoice == F367 ? "SLOAN_RATIO" :
+      _userFinancialChoice == F368 ? "SPRINGATE_SCORE" :
+      _userFinancialChoice == F369 ? "SUSTAINABLE_GROWTH_RATE" :
+      _userFinancialChoice == F370 ? "TANGIBLE_COMMON_EQUITY_RATIO" :
+      _userFinancialChoice == F371 ? "TOBIN_Q_RATIO" :
+      _userFinancialChoice == F372 ? "TOTAL_SHARES_OUTSTANDING" :
+      _userFinancialChoice == F373 ? "ZMIJEWSKI_SCORE" :
+      ""
+
+// ————— Function returns true if the `_userFinancialChoice`'s units are currency.
+f_valueIsInCurrency(_userFinancialChoice) =>
+    // Dependencies: `Fxxx` constants.
+
+    var bool _return = 
+      _userFinancialChoice == F302 ? false :
+      _userFinancialChoice == F304 ? false :
+      _userFinancialChoice == F305 ? false :
+      _userFinancialChoice == F306 ? false :
+      _userFinancialChoice == F307 ? false :
+      _userFinancialChoice == F308 ? false :
+      _userFinancialChoice == F309 ? false :
+      _userFinancialChoice == F310 ? false :
+      _userFinancialChoice == F311 ? false :
+      _userFinancialChoice == F312 ? false :
+      _userFinancialChoice == F313 ? false :
+      _userFinancialChoice == F314 ? false :
+      _userFinancialChoice == F315 ? false :
+      _userFinancialChoice == F316 ? false :
+      _userFinancialChoice == F317 ? false :
+      _userFinancialChoice == F318 ? false :
+      _userFinancialChoice == F319 ? false :
+      _userFinancialChoice == F321 ? false :
+      _userFinancialChoice == F322 ? false :
+      _userFinancialChoice == F323 ? false :
+      _userFinancialChoice == F324 ? false :
+      _userFinancialChoice == F325 ? false :
+      _userFinancialChoice == F327 ? false :
+      _userFinancialChoice == F328 ? false :
+      _userFinancialChoice == F329 ? false :
+      _userFinancialChoice == F330 ? false :
+      _userFinancialChoice == F331 ? false :
+      _userFinancialChoice == F332 ? false :
+      _userFinancialChoice == F333 ? false :
+      _userFinancialChoice == F334 ? false :
+      _userFinancialChoice == F335 ? false :
+      _userFinancialChoice == F336 ? false :
+      _userFinancialChoice == F337 ? false :
+      _userFinancialChoice == F338 ? false :
+      _userFinancialChoice == F339 ? false :
+      _userFinancialChoice == F340 ? false :
+      _userFinancialChoice == F341 ? false :
+      _userFinancialChoice == F342 ? false :
+      _userFinancialChoice == F344 ? false :
+      _userFinancialChoice == F345 ? false :
+      _userFinancialChoice == F346 ? false :
+      _userFinancialChoice == F347 ? false :
+      _userFinancialChoice == F348 ? false :
+      _userFinancialChoice == F349 ? false :
+      _userFinancialChoice == F350 ? false :
+      _userFinancialChoice == F351 ? false :
+      _userFinancialChoice == F352 ? false :
+      _userFinancialChoice == F353 ? false :
+      _userFinancialChoice == F354 ? false :
+      _userFinancialChoice == F355 ? false :
+      _userFinancialChoice == F356 ? false :
+      _userFinancialChoice == F357 ? false :
+      _userFinancialChoice == F358 ? false :
+      _userFinancialChoice == F359 ? false :
+      _userFinancialChoice == F360 ? false :
+      _userFinancialChoice == F361 ? false :
+      _userFinancialChoice == F362 ? false :
+      _userFinancialChoice == F363 ? false :
+      _userFinancialChoice == F366 ? false :
+      _userFinancialChoice == F367 ? false :
+      _userFinancialChoice == F368 ? false :
+      _userFinancialChoice == F369 ? false :
+      _userFinancialChoice == F370 ? false :
+      _userFinancialChoice == F371 ? false :
+      _userFinancialChoice == F372 ? false :
+      _userFinancialChoice == F373 ? false :
+
+      _userFinancialChoice == F402 ? false :
+      _userFinancialChoice == F403 ? false :
+      _userFinancialChoice == F404 ? false :
+      _userFinancialChoice == F405 ? false :
+      true
+
+// ————— Function to format large values.
+f_formatValue(_v, _precision) =>    // Thx Alex P.!
+    // float _v         : value to format.
+    // string _precision: format suffix for precision ("" for none, ".00" for two digits, etc.)
+    float _digits = log10(abs(_v))
+    string _precisionFormat = "#" + _precision
+    string _return = if _digits > 12
+        tostring(_v / 1e12, _precisionFormat + "  T")
+    else if _digits > 9
+        tostring(_v / 1e9,  _precisionFormat + "  B")
+    else if _digits > 6
+        tostring(_v / 1e6,  _precisionFormat + "  M")
+    else if _digits > 3
+        tostring(_v / 1e3,  _precisionFormat + "  K")
+    else
+        tostring(_v,  "#" + _precisionFormat)
+        
+// ————— Function creates a string by concatenating `_count` times the `_string`.
+f_stringOf(_count, _string) =>
+    array.join(array.new_string(_count, _string))
+
+// ————— Function returns the rate to convert USD in `_currency`.
+f_conversationRate(_currency) =>
+    security("USD" + _currency, "", open)
+
+// ————— Function converts USD `_val` in `_currency`.
+f_convertUsdValTo(_val, _currency) =>
+    float _return = if _currency != ""
+        _val * f_conversationRate(_currency)
+    else
+        _val
+
+// ————— Fuction returns a calculated financial if `_financialId` corresponds to one, `na` otherwise.
+f_calculatedFinancial(_financialId) =>
+    // Dependencies: `F4xx` constants. `repaintOffset`.
+    float _tso     = financial(syminfo.tickerid, "TOTAL_SHARES_OUTSTANDING", "FQ")
+    float _tr      = financial(syminfo.tickerid, "TOTAL_REVENUE",            "TTM")
+    float _eps     = financial(syminfo.tickerid, "EARNINGS_PER_SHARE",       "TTM")
+    float _bvps    = financial(syminfo.tickerid, "BOOK_VALUE_PER_SHARE",     "FQ")
+    float _marketCap          = _tso * open
+    float _earningsYield      = (_eps / open) * 100.
+    float _priceBookRatio     = open / _bvps
+    float _priceEarningsRatio = open / _eps
+    float _priseSalesRatio    = _marketCap / _tr
+    float _return = na
+    if _financialId == F401
+        _return := _marketCap
+    else if _financialId == F402
+        _return := _earningsYield
+    else if _financialId == F403
+        _return := _priceBookRatio
+    else if _financialId == F404
+        _return := _priceEarningsRatio
+    else if _financialId == F405
+        _return := _priseSalesRatio
+    _return    
+
+// ————— Function fetches or calculates one user-selected financial in the selected currency (if one is selected), and displays it.
+f_printFinancial(_pos, _table, _description, _period, _precision, _legend, _textSize, _c_bg) =>
+    // Dependencies: `Fxxx`, `FQ`, `FY` constants. `i_currency`, `i_tableColWidth`, `i_tableRowHeight`, `i_tableTextSize`, `i_c_tableText`, `i_c_tableBg`, ``i_c_tableBgDn, `f_getId(_a)`, `f_calculatedFinancial(_a)`, `f_convertUsdValTo()`.
+
+    // Set all stable properties once.
+    var string _valuePeriod       = _period == FQ ? "FQ" : _period == FY ? "FY" : "TTM"
+    var bool   _valueIsInCurrency = f_valueIsInCurrency(_description)
+    var string _valuePrecision    = (_precision == 0 ? "" : ".") + f_stringOf(_precision, "0")
+    var string _builtinId         = f_getId(_description)
+    var bool   _userChoseABuiltin = _builtinId != ""
+    var string _valueId           = _userChoseABuiltin ? _builtinId : "BASIC_SHARES_OUTSTANDING"
+    var string _legendToPrint     = _legend != "" ? " " + _legend : _description
+    var string _sizeTxt           = _textSize == TXT_SIZE ? i_tableTextSize : _textSize
+    var color  _c_legendBg        = _c_bg == C_BG  ? i_c_tableBg   : _c_bg
+    
+    // Fetch calculated financial if one was selected.
+    float _financialCalculated = if _description == F401 or _description == F402 or _description == F403 or _description == F404 or _description == F405
+        f_calculatedFinancial(_description)
+    bool _userMadeASelection   = _userChoseABuiltin or not na(_financialCalculated)
+    // ————— Get user-selected financial's value. It can be one of the standards (F000-F373), or a calculated value (F400-F405).
+    float _financialBuiltin    = financial(syminfo.tickerid, _valueId, _valuePeriod)
+    // If no calculated value was returned, use the built-in financial.
+    float _financialRaw        = nz(_financialCalculated, _financialBuiltin)
+    float _financialConverted  = f_convertUsdValTo(_financialRaw, i_currency)
+    float _financial           = _valueIsInCurrency ? _financialConverted : _financialRaw
+    color _c_valueBg = _financial < 0 ? i_c_tableBgDn : _c_legendBg
+    if _userMadeASelection and barstate.islast
+        // Display description.
+        int _row = _pos - 1
+        table.cell(_table, 0, _row, _legendToPrint, i_tableColWidth, i_tableRowHeight, i_c_tableText, text.align_left, text.align_center, _sizeTxt, _c_legendBg)
+        // Display financial.
+        string _currency = not i_showCurrency or not _valueIsInCurrency ? "" : i_currency == "" ? syminfo.currency : i_currency
+        string _text = na(_financial) ? "" : " " + (i_abbrLargeValues ? f_formatValue(_financial, _valuePrecision) : tostring(_financial, "###,###,###,###,###,###" + _valuePrecision)) + " " + _currency
+        table.cell(_table, 1, _row, _text, i_tableColWidth, i_tableRowHeight, i_c_tableText, text.align_left, text.align_center, _sizeTxt, _c_valueBg)
+// }
+
+
+
+// ———————————————————— Display legends and values {
+f_printFinancial(1, display, i_01, i_01_period, i_01_precision, i_01_legend, i_01_textSize, i_01_c_bg)
+f_printFinancial(2, display, i_02, i_02_period, i_02_precision, i_02_legend, i_02_textSize, i_02_c_bg)
+f_printFinancial(3, display, i_03, i_03_period, i_03_precision, i_03_legend, i_03_textSize, i_03_c_bg)
+f_printFinancial(4, display, i_04, i_04_period, i_04_precision, i_04_legend, i_04_textSize, i_04_c_bg)
+f_printFinancial(5, display, i_05, i_05_period, i_05_precision, i_05_legend, i_05_textSize, i_05_c_bg)
+f_printFinancial(6, display, i_06, i_06_period, i_06_precision, i_06_legend, i_06_textSize, i_06_c_bg)
+f_printFinancial(7, display, i_07, i_07_period, i_07_precision, i_07_legend, i_07_textSize, i_07_c_bg)
+f_printFinancial(8, display, i_08, i_08_period, i_08_precision, i_08_legend, i_08_textSize, i_08_c_bg)
+f_printFinancial(9, display, i_09, i_09_period, i_09_precision, i_09_legend, i_09_textSize, i_09_c_bg)
+bgcolor(color.new(i_c_tableBg, 100))
+// }
